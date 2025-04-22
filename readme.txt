@@ -61,20 +61,14 @@ Installation ⚙️
 
 1. Clone the Repository
 bash
-git clone https://github.com/yourusername/nft-price-predictor.git
+git clone https://github.com/Olamzkid2005/NFT-price-prediction-using-Machine-Learning
 cd nft-price-predictor
 
-2. Set Up a Virtual Environment
-bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-.\venv\Scripts\activate   # Windows
-
-3. Install Dependencies
+2. Install Dependencies
 bash
 pip install -r requirements.txt
 
-4. Run the Flask App
+3. Run the Flask App
 bash
 python app.py
 ➡️ Open http://localhost:5000 in your browser.
