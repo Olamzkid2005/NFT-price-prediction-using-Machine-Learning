@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFT Price Predictor</title>
+    <style>
+        :root {
+            --primary: #6e44ff;
+            --secondary: #b892ff;
+            --dark: #1e1e24;
+            --light: #f8f1ff;
+            --success: #4cc9f0;
+            --warning: #f72585;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark), #2a2a3a);
+            color: var(--light);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--primary), var(--success));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .card {
+            background: rgba(30, 30, 36, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--secondary);
+        }
+        
+        button {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        button:hover {
+            background: linear-gradient(to right, var(--primary), #a67aff);
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-card {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .model-result {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .model-name {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .model-value {
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        
+        /* Loading Bar Styles */
+        .loading-container {
+            display: none;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .loading-bar {
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, var(--primary), var(--success));
+            border-radius: 5px;
+            transition: width 0.1s linear;
+        }
+        
+        .loading-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+        
+        .loading-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* Upload area styles */
+        .upload-container {
+            margin-top: 1rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(110, 68, 255, 0.1);
+        }
+        
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        #preview-image {
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            max-width: 100%;
+            max-height: 200px;
+        }
+        
+        /* NFT Info Styles */
+        .nft-info {
+            margin-bottom: 2rem;
+        }
+        
+        .nft-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 1rem;
+        }
+        
+        .nft-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        
+        .nft-title h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .nft-title p {
+            margin: 0;
+            color: var(--secondary);
+        }
+        
+        .nft-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .detail-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .detail-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--secondary);
+        }
+        
+        .traits-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .trait-pill {
+            background: rgba(110, 68, 255, 0.2);
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        /* Comparison Links */
+        .comparison-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .comparison-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(110, 68, 255, 0.2);
+            border-radius: 20px;
+            color: var(--light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .comparison-link:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NFT Price Predictor</h1>
+            <p class="subtitle">Upload your NFT image to get price predictions using advanced machine learning models</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="card">
+                <div class="form-group">
+                    <label>Upload NFT Image:</label>
+                    <div class="upload-container">
+                        <input type="file" id="nft-upload" accept="image/*" style="display: none;">
+                        <div class="upload-area" id="upload-area">
+                            <img id="preview-image" style="display: none;">
+                            <div id="upload-text">
+                                <i class="upload-icon">📁</i>
+                                <p>Drag & drop NFT image or click to browse</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="predict-btn">
+                    <span class="btn-text">Predict Price</span>
+                    <div class="spinner" id="btn-spinner" style="display:none;"></div>
+                </button>
+            </div>
+            
+            <!-- Loading Bar Container -->
+            <div class="card loading-container" id="loading-container">
+                <h3>Analyzing Your NFT...</h3>
+                <div class="loading-bar">
+                    <div class="loading-progress" id="loading-progress"></div>
+                </div>
+                <div class="loading-text" id="loading-text">Initializing prediction models...</div>
+                <div class="loading-steps">
+                    <span>1. Image Processing</span>
+                    <span>2. Feature Extraction</span>
+                    <span>3. Price Prediction</span>
+                </div>
+            </div>
+            
+            <!-- NFT Information Card -->
+            <div class="card result-card" id="result-card" style="display:none;">
+                <div class="nft-info" id="nft-info">
+                    <!-- Filled dynamically by JavaScript -->
+                </div>
+                
+                <h3>Price Predictions</h3>
+                <div class="model-result">
+                    <span class="model-name">Linear Regression:</span>
+                    <span class="model-value" id="lr-result">--</span>
+                </div>
+                
+                <div class="model-result">
+                    <span class="model-name">KNN:</span>
+                    <span class="model-value" id="knn-result">--</span>
+                </div>
+                
+                <div class="model-result">
+                    <span class="model-name">LSTM Neural Network:</span>
+                    <span class="model-value" id="lstm-result">--</span>
+                </div>
+                
+                <div class="comparison-links">
+                    <a href="#" class="comparison-link" id="opensea-link" target="_blank">Compare on OpenSea</a>
+                    <a href="#" class="comparison-link" id="rarible-link" target="_blank">Compare on Rarible</a>
+                    <a href="#" class="comparison-link" id="looksrare-link" target="_blank">Compare on LooksRare</a>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>NFT Price Prediction System &copy; 2025 | Created by Wojuade Oluwasegun</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const predictBtn = document.getElementById('predict-btn');
+            const btnSpinner = document.getElementById('btn-spinner');
+            const btnText = predictBtn.querySelector('.btn-text');
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('nft-upload');
+            const previewImage = document.getElementById('preview-image');
+            const uploadText = document.getElementById('upload-text');
+            const loadingContainer = document.getElementById('loading-container');
+            const loadingProgress = document.getElementById('loading-progress');
+            const loadingText = document.getElementById('loading-text');
+            const resultCard = document.getElementById('result-card');
+            const nftInfoContainer = document.getElementById('nft-info');
+            const openseaLink = document.getElementById('opensea-link');
+            const raribleLink = document.getElementById('rarible-link');
+            const looksrareLink = document.getElementById('looksrare-link');
+            
+            // File upload handling
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--primary)';
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect(e.dataTransfer.files[0]);
+                }
+            });
+            
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+            
+            function handleFileSelect(file) {
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                    uploadText.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // Prediction button click
+            predictBtn.addEventListener('click', function() {
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('Please upload an NFT image first');
+                    return;
+                }
+                
+                startPredictionProcess(() => {
+                    const formData = new FormData();
+                    formData.append('nft_image', file);
+                    
+                    fetch('/predict_from_image', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        showResults(data);
+                    })
+                    .catch(error => {
+                        console.error('Prediction error:', error);
+                        alert('Error making prediction. Please try again.');
+                    });
+                });
+            });
+            
+            // Start prediction with loading animation
+            function startPredictionProcess(predictionFunction) {
+                // Reset UI
+                resultCard.style.display = 'none';
+                predictBtn.disabled = true;
+                btnText.style.display = 'none';
+                btnSpinner.style.display = 'block';
+                loadingContainer.style.display = 'block';
+                
+                // Start loading bar animation
+                const duration = 10000; // 10 seconds
+                const startTime = Date.now();
+                const endTime = startTime + duration;
+                
+                const updateProgress = () => {
+                    const now = Date.now();
+                    const progress = Math.min(1, (now - startTime) / duration);
+                    loadingProgress.style.width = `${progress * 100}%`;
+                    
+                    // Update loading text based on progress
+                    if (progress < 0.3) {
+                        loadingText.textContent = "Processing image and extracting features...";
+                    } else if (progress < 0.7) {
+                        loadingText.textContent = "Analyzing market trends and historical data...";
+                    } else {
+                        loadingText.textContent = "Finalizing price predictions...";
+                    }
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(updateProgress);
+                    }
+                };
+                
+                updateProgress();
+                
+                // Start the actual prediction after a short delay
+                setTimeout(() => {
+                    predictionFunction();
+                }, 500);
+            }
+            
+            // Show results after prediction
+            function showResults(data) {
+                // Complete the loading bar
+                loadingProgress.style.width = '100%';
+                loadingText.textContent = "Prediction complete!";
+                
+                // Hide loading after a short delay
+                setTimeout(() => {
+                    loadingContainer.style.display = 'none';
+                    
+                    // Enable button
+                    predictBtn.disabled = false;
+                    btnText.style.display = 'block';
+                    btnSpinner.style.display = 'none';
+                    
+                    // Display results if successful
+                    if (data.success) {
+                        // Update NFT information
+                        nftInfoContainer.innerHTML = `
+                            <div class="nft-header">
+                                <img src="${data.image_url}" class="nft-image" onerror="this.src='static/images/default-nft.png'">
+                                <div class="nft-title">
+                                    <h3>${data.name || 'Unknown NFT'}</h3>
+                                    <p>${data.collection || 'Unknown Collection'}</p>
+                                </div>
+                            </div>
+                            <div class="nft-details">
+                                <div class="detail-card">
+                                    <h4>Rarity</h4>
+                                    <p>${data.rarity || 'Unknown'}</p>
+                                </div>
+                                <div class="detail-card">
+                                    <h4>Last Sale</h4>
+                                    <p>${data.last_sale || 'No sales data'}</p>
+                                </div>
+                                <div class="detail-card" style="grid-column: span 2;">
+                                    <h4>Traits</h4>
+                                    <div class="traits-container">
+                                        ${data.traits ? data.traits.map(trait => `
+                                            <div class="trait-pill">
+                                                <strong>${trait.trait}:</strong> ${trait.value}
+                                            </div>
+                                        `).join('') : '<p>No trait data available</p>'}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Update price predictions
+                        document.getElementById('lr-result').textContent = 
+                            data.lr ? `${data.lr} ETH` : 'Not available';
+                        document.getElementById('knn-result').textContent = 
+                            data.knn ? `${data.knn} ETH` : 'Not available';
+                        document.getElementById('lstm-result').textContent = 
+                            data.lstm ? `${data.lstm} ETH` : 'Not available';
+                        
+                        // Update comparison links (using mock search queries)
+                        const nftNameForSearch = encodeURIComponent(data.name || 'nft');
+                        openseaLink.href = `https://opensea.io/assets?search[query]=${nftNameForSearch}`;
+                        raribleLink.href = `https://rarible.com/search?search=${nftNameForSearch}`;
+                        looksrareLink.href = `https://looksrare.org/collections/search?query=${nftNameForSearch}`;
+                        
+                        // Show result card
+                        resultCard.style.display = 'block';
+                    } else {
+                        alert(data.message || 'Prediction failed');
+                    }
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Price Predictor</title>
+</head>
+<body>
+    <h1>Price Predictor</h1>
+    <form method="post">
+        <label for="nft_name">Enter NFT name:</label>
+        <input type="text" id="nft_name" name="nft_name" required>
+        <input type="submit" value="Predict">
+    </form>
+    {% if prediction %}
+        <h2>Predictions:</h2>
+        <p>Linear Regression: {{ prediction.lr }}</p>
+        <p>KNN: {{ prediction.knn }}</p>
+        <p>LSTM: {{ prediction.lstm }}</p>
+    {% endif %}
+</body>
+</html>
